@@ -1,0 +1,50 @@
+---
+title: "Stat 433 Hw 1"
+author: "Gary Lin"
+date: "`r Sys.Date()`"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Here is my github url: [github](https://github.com/G-rexy/G-rexy-HW_1-for-433)
+
+```{r}
+library(dplyr)
+library(nycflights13)
+library(ggplot2)
+```
+
+
+## Q1
+How many flights have a missing `dep_time`? What other variables are missing? What might these rows represent?
+```{r}
+  flights %>% count(is.na(dep_time))
+  #flights %>% is.na(dep_time)
+  filter(flights, is.na(dep_time))
+```
+From the table, besides `dep_time`, `dep_delay`, `arr_time`, `arr_delay`, and `air_time` are all NA, which probably means that the flight cancelled.
+
+
+## Q2
+Currently `dep_time` and `sched_dep_time` are convenient to look at, but hard to compute with because they’re not really continuous numbers. Convert them to a more convenient representation of number of minutes since midnight.
+```{r}
+flights %>% mutate(dep_time_min = dep_time %/% 100 * 60 + dep_time %% 100, 
+                   sched_dep_time_min = sched_dep_time %/% 100 * 60 + sched_dep_time %% 100)
+```
+
+
+## Q3
+Look at the number of canceled flights per day. Is there a pattern? Is the proportion of canceled flights related to the average delay? Use multiple dyplr operations, all on one line, concluding with `ggplot(aes(x= ,y=)) + geom_point()`
+
+```{r}
+flights %>% 
+  group_by(month, day) %>%
+  summarize(avg_dep_delay = mean(dep_delay, na.rm = T),
+            prop_cancelled = sum(is.na(dep_time)/n())) %>%
+  ggplot(mapping = aes(x = avg_dep_delay, y = prop_cancelled)) +
+  geom_point() +
+  geom_smooth(method = 'lm', se = F)
+```
